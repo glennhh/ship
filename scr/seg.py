@@ -8,7 +8,6 @@ import cv2
 import skimage
 from matplotlib import pyplot as plt
 from skimage.exposure import histogram
-import time
 from skimage import io, measure
 from skimage.feature import canny
 from scipy import ndimage as ndi
