@@ -11,12 +11,6 @@ import os
 
 
 def rle_decode(mask_rle, shape=(768, 768)):
-    '''
-    mask_rle: run-length as string formated (start length)
-    shape: (height,width) of array to return 
-    Returns numpy array, 1 - mask, 0 - background
-
-    '''
     s = mask_rle.split()
     starts, lengths = [np.asarray(x, dtype=int) for x in (s[0:][::2], s[1:][::2])]
     starts -= 1
