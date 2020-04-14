@@ -25,7 +25,7 @@ imgsOri = io.ImageCollection(fileList)
 ###    Constants          ###
 #############################
 gradThrLo = 0.1 
-gradThrHi = 0.6 
+gradThrHi = 0.6    # 0.6 is best    
 patchHoleSize = 20
 
 def show1(img):
@@ -72,7 +72,7 @@ for file in fileList:
     img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)   # go gray 
 
     # find elevation  
-    #elevation_map = sobel(img)
+    #elevation = sobel(img)
     gradient = rank.gradient(img, disk(2))  
 
     # find markers 
@@ -82,7 +82,8 @@ for file in fileList:
 
     # fill regions with watershed transform    
     segmentation = watershed(gradient, markers)   # 1,2 
-     
+    #print(gradient[700], markers[700]) 
+    #show2( markers, 'markers', gradient, 'gradient')    
     # patch holes 10001  
     segmentation = ndi.binary_fill_holes(segmentation - 1, structure=np.ones((patchHoleSize,1)))  # 0,1 
     labeledShip, _ = ndi.label(segmentation)       # 0,3  
