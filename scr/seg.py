@@ -27,6 +27,7 @@ imgsOri = io.ImageCollection(fileList)
 gradThrLo = 0.1 
 gradThrHi = 0.6    # 0.6 is best    
 patchHoleSize = 20
+model = ( gradThrHi, gradThrLo ) 
 
 def show1(img):
     plt.imshow(img)
@@ -65,14 +66,16 @@ def show4(img1, name1, img2, name2, img3, name3, img4, name4):
     plt.pause(9)
     plt.close()
 
-for file in fileList:
+def segmentation(file, model): 
     imgOri = cv2.imread(file, cv2.IMREAD_UNCHANGED)   # read img
 
-    img = cv2.GaussianBlur(imgOri,(5,5),0)
-    img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)   # go gray 
+    # GaussianBlur
+    img = cv2.GaussianBlur(imgOri,(5,5),0)            # de-noise  
 
-    # find elevation  
-    #elevation = sobel(img)
+    # Gray 
+    img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)       # go gray 
+
+    # gradient   
     gradient = rank.gradient(img, disk(2))  
 
     # find markers 
@@ -83,7 +86,8 @@ for file in fileList:
     # fill regions with watershed transform    
     segmentation = watershed(gradient, markers)   # 1,2 
     #print(gradient[700], markers[700]) 
-    #show2( markers, 'markers', gradient, 'gradient')    
+    show2( markers, 'markers', gradient, 'gradient')    
+
     # patch holes 10001  
     segmentation = ndi.binary_fill_holes(segmentation - 1, structure=np.ones((patchHoleSize,1)))  # 0,1 
     labeledShip, _ = ndi.label(segmentation)       # 0,3  
@@ -98,10 +102,17 @@ for file in fileList:
         box = np.int0(box)
         cv2.drawContours(imgMask,[cnt],0,(0,0,255),2)   # draw contours in green color
         cv2.polylines(imgMask,[box],True,(255,0,0),2)   # draw rectangle in blue color
+
     # fill holes in mask
     imgMask = ndi.binary_fill_holes(imgMask)
     show2(imgOri, 'Input', imgMask, 'Mask')
+
+    return imgMask  
     
     
-    
-    
+if __name__ == '__main__':
+    segmentation( fileList[0], model ) 
+
+
+
+ 
