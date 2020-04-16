@@ -86,7 +86,7 @@ def segmentation(file, model):
     # fill regions with watershed transform    
     segmentation = watershed(gradient, markers)   # 1,2 
     #print(gradient[700], markers[700]) 
-    show2( markers, 'markers', gradient, 'gradient')    
+    #show2( markers, 'markers', gradient, 'gradient')    
 
     # patch holes 10001  
     segmentation = ndi.binary_fill_holes(segmentation - 1, structure=np.ones((patchHoleSize,1)))  # 0,1 
@@ -105,7 +105,7 @@ def segmentation(file, model):
 
     # fill holes in mask
     imgMask = ndi.binary_fill_holes(imgMask)
-    show2(imgOri, 'Input', imgMask, 'Mask')
+    #show2(imgOri, 'Input', imgMask, 'Mask')
 
     return imgMask  
     

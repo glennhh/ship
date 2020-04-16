@@ -16,16 +16,18 @@ from skimage.segmentation import watershed
 from skimage.morphology import watershed, disk   
 from skimage.util import img_as_ubyte  
 import pandas as pd
-
+import random 
+import readds
 
 curPath = os.path.dirname(os.path.realpath(__file__))  
 outputPath = curPath + '/output/' 
 recordFile = outputPath + 'record.cvs'
-finalModelFile = outputPath + 'model.cvs'     
-trainPath = curPath + '/input/train/'
+finalModelFile = outputPath + 'model.csv'     
+trainPath = '/home/cloudlab/Data/ml/dataset/train_v2/' 
 fileList = glob.glob(trainPath + "*.jpg")
 imgsOri = io.ImageCollection(fileList)
 trueMasks = pd.read_csv(curPath + '/input/train_ship_segmentations_v2.csv')  
+imgNameFile = '/home/cloudlab/Data/ml/ship/scr/input/imgList.csv'   
 trueMasks.head()
 shape=(768, 768)  
 
@@ -135,22 +137,26 @@ def finalModel():
     entry.to_csv(finalModelFile, mode='a', header=True) 
     print('\nModel: \n\n', entry, '\n')
  
-def train():  
+def train(fileList):  
+
     prep()  
-    # initialize model
-    #gradThrLo = 0.1 
-    #gradThrHi = 0.6    # 0.6 is best    
-    #model = (gradThrLo, gradThrHi)  
 
     # start training
     fileAm = len(fileList) 
+
     print('Start training ......')   
     print('Total : %d' % fileAm ) 
+    i, j = 0, list(map(int, np.multiply( fileAm, np.multiply(0.1, range(1,11,1)) )))
+
     for file in fileList:  
+        file = trainPath + file
+
         # print progress     
-        progress = int((fileList.index(file)+1)/fileAm*100)   
-        if not int(progress%10):    
-            print( '\t%.0f%% ' % progress ) 
+        i = i + 1
+        if i in j:
+            print( '\t{:.0%}'.format((j.index(i)+1)/10 ))
+
+        # start image processing  
         imgName = file.replace(trainPath,'') 
         imgOri = cv2.imread(file, cv2.IMREAD_UNCHANGED)   # read img
 
@@ -226,7 +232,25 @@ def train():
     return model  
     
 if __name__ == '__main__':
-    model = train() 
+
+    # store image name to /input/imgList.csv 
+    exec(open('readds.py').read()) 
+
+    imgAm = len(open(imgNameFile).readlines()) 
+    kfold = 4
+    kfoldIdx = int(imgAm*((kfold-1)/kfold)) 
+    #with open(imgNameFile,'r') as imgfile:  
+    #    name = [next(imgfile) for x in range(kfoldIdx) ]  
+    name = open(imgNameFile,'r').readlines()
+    random.shuffle(name)  
+    testImg = name[kfoldIdx:] 
+    del name[kfoldIdx:]  
+    with open(imgNameFile,'w') as imgfile:  
+        imgfile.write(''.join(testImg))      
+    name[:] = ( value[:-1] for value in name )   # remove \n
+
+
+    model = train(name) 
 
 
  

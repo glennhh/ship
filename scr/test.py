@@ -49,7 +49,6 @@ def show2(img1, name1, img2, name2):
     plt.imshow(img1)
     plt.subplot(122).set_title(name2)
     plt.imshow(img2)
-    #plt.imshow(img2, cmap=plt.cm.Spectral, interpolation='nearest') 
     plt.show(block=False)
     plt.pause(9)
     plt.close()
@@ -75,20 +74,20 @@ def show4(img1, name1, img2, name2, img3, name3, img4, name4):
     plt.close()
 
 def prep():
-    os.remove(recordFile) 
-    with open(recordFile, 'w'):
+    try:
+        os.remove(predictFile)
+    except FileNotFoundError:
         pass
-    os.remove(finalModelFile)  
-    with open(finalModelFile, 'w'):
-        pass
-    os.remove(predictFile)  
-    with open(predictFile, 'w'):
-        pass
-
+    with open(predictFile, 'w'):  
+        entry = pd.DataFrame([], columns= ['imgName', 'IoU'] )
+        entry.to_csv(predictFile)    
 
 def rle_mask(imgPath):
     def demask(mask): 
-        s = mask.split()
+        try:
+            s = mask.split()
+        except AttributeError:
+            return np.zeros((768, 768))
         starts, lengths = [np.asarray(x, dtype=int) for x in (s[0:][::2], s[1:][::2])]
         starts -= 1
         ends = starts + lengths
@@ -110,15 +109,14 @@ def output(array):
     gradThrHi =  (maxA-minA)/maxA           
     return (gradThrHi, gradThrLo)      
 
-def store(model, imgName):
+def store(model, imgName):  
     entry = pd.DataFrame(np.array([[imgName,model[0],model[1]]],
-                                  columns=['imgID', gradThrHi, gradThrLo] ) 
+                                  columns=['imgID', gradThrHi, gradThrLo] ))  
     entry.to_csv(recordFile, mode='a', header=False) 
 
 def storePredict(imgName, IoU):
-    IoU = 1 if IoU > iouThrh else IoU = 0   
-    entry = pd.DataFrame(np.array([[imgName,IoU]]),
-                                  columns=[ 'imgID', IoU ] ) 
+    #IoU = 1 if IoU > iouThrh else IoU = 0   
+    entry = pd.DataFrame( { 'imgName': [imgName], 'IoU': [IoU] }, columns = ['imgName', 'IoU'] )   
     entry.to_csv( predictFile, mode='a', header=False) 
 
 def finalModel():
@@ -126,30 +124,38 @@ def finalModel():
     gradThrHi = df['gradThrHi'].median()
     gradThrLo = df['gradThrLo'].min() 
     entry = pd.DataFrame(np.array([[imgName,model[0],model[1]]],
-                                  columns=['Final', gradThrHi, gradThrLo] ) 
+                                  columns=['Final', gradThrHi, gradThrLo] ))   
     entry.to_csv(finelModelFile, mode='a', header=False) 
-    print entry[0]  
+    print(entry[0] ) 
 
 def readModel():
     df = pd.read_csv(finalModelFile) 
-    model = ( df.loc['final', 'gradThrHi'], df.loc['final', 'gradThrLo'] )  
+    model = ( df['gradThrHi'][0] , df['gradThrLo'][0]  ) 
+    print('Current model is: \t ', model) 
 
 def evalue(x, y):
     # IoU metric  
-    I = np.multipy(x, y) 
+    I = np.multiply(x, y) 
     U = x + y 
-    if U = 0:
+    if np.max(U) == 0:
         return 1  
     IoU = len(np.nonzero(I))/len(np.nonzero(U))    
-    return IoU 
+    return 1 if IoU > iouThrh else 0     
         
 def calAccu():
     df = pd.read_csv( predictFile ) 
-    acc = df[''].sum() / df[''].count() 
+    a = df[df.IoU > 0].count().IoU
+    b = df[df.IoU >= 0].count().IoU
+    acc = a / b  
+    print('\n\tCorrect:     ', a, '\n\tTotal:       ', b, '\n\n\tAccuracy:    ', acc, '\n')    
     return acc  
 
  
 def test(fileList, model):  
+    
+    # prepare 
+    prep() 
+
     # test every img  
     for file in fileList:  
         # get predict
@@ -166,13 +172,12 @@ def test(fileList, model):
 
     # compute accuracy   
     accuracy = calAccu() 
-    print accuracy 
 
     return accuracy    
     
 if __name__ == '__main__':
     model = readModel()      
-    prediction = test(fileList, model) 
+    accuracy = test(fileList, model) 
 
 
 
