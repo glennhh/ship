@@ -27,7 +27,7 @@ trainPath = '/home/cloudlab/Data/ml/dataset/train_v2/'
 fileList = glob.glob(trainPath + "*.jpg")
 imgsOri = io.ImageCollection(fileList)
 trueMasks = pd.read_csv(curPath + '/input/train_ship_segmentations_v2.csv')  
-imgNameFile = '/home/cloudlab/Data/ml/ship/scr/input/imgList.csv'   
+imgNameFile = curPath + '/input/imgList.csv'   
 trueMasks.head()
 shape=(768, 768)  
 
