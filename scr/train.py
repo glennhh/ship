@@ -21,13 +21,14 @@ import readds
 
 curPath = os.path.dirname(os.path.realpath(__file__))  
 outputPath = curPath + '/output/' 
-recordFile = outputPath + 'record.cvs'
+recordFile = outputPath + 'record.csv'
 finalModelFile = outputPath + 'model.csv'     
-trainPath = '/home/cloudlab/Data/ml/dataset/train_v2/' 
+#trainPath = '/home/cloudlab/Data/ml/dataset/train_v2/' 
+trainPath = '/home/hao/Data/course/ML/project/train_v2/'
 fileList = glob.glob(trainPath + "*.jpg")
 imgsOri = io.ImageCollection(fileList)
 trueMasks = pd.read_csv(curPath + '/input/train_ship_segmentations_v2.csv')  
-imgNameFile = '/home/cloudlab/Data/ml/ship/scr/input/imgList.csv'   
+imgNameFile = curPath + '/input/imgList.csv'   
 trueMasks.head()
 shape=(768, 768)  
 
@@ -236,21 +237,21 @@ if __name__ == '__main__':
     # store image name to /input/imgList.csv 
     exec(open('readds.py').read()) 
 
-    imgAm = len(open(imgNameFile).readlines()) 
+    imgFiles = open(imgNameFile).readlines()
+    imgAm = len(imgFiles) 
     kfold = 4
     kfoldIdx = int(imgAm*((kfold-1)/kfold)) 
     #with open(imgNameFile,'r') as imgfile:  
     #    name = [next(imgfile) for x in range(kfoldIdx) ]  
-    name = open(imgNameFile,'r').readlines()
-    random.shuffle(name)  
-    testImg = name[kfoldIdx:] 
-    del name[kfoldIdx:]  
+    random.shuffle(imgFiles)  
+    testImg = imgFiles[kfoldIdx:] 
+    del imgFiles[kfoldIdx:]  
     with open(imgNameFile,'w') as imgfile:  
         imgfile.write(''.join(testImg))      
-    name[:] = ( value[:-1] for value in name )   # remove \n
+    imgFiles[:] = ( value[:-1] for value in imgFiles )   # remove \n
 
 
-    model = train(name) 
+    model = train(imgFiles) 
 
 
  
