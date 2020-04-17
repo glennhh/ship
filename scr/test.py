@@ -24,7 +24,9 @@ outputPath = curPath + '/output/'
 recordFile = outputPath + 'record.csv'
 finalModelFile = outputPath + 'model.csv'     
 predictFile    = outputPath + 'predict.csv'  
-trainPath = curPath + '/input/train/'
+#trainPath = curPath + '/input/train/'
+imgNameFile = curPath + '/input/imgList.csv'
+trainPath = '/home/hao/Data/course/ML/project/train_v2/'
 fileList = glob.glob(trainPath + "*.jpg")
 imgsOri = io.ImageCollection(fileList)
 trueMasks = pd.read_csv(curPath + '/input/train_ship_segmentations_v2.csv')  
@@ -150,14 +152,25 @@ def calAccu():
     print('\n\tCorrect:     ', a, '\n\tTotal:       ', b, '\n\n\tAccuracy:    ', acc, '\n')    
     return acc  
 
- 
 def test(fileList, model):  
     
     # prepare 
     prep() 
+    
+    fileAm = len(fileList) 
+    print('Start testing ......')   
+    print('Total : %d' % fileAm ) 
+    i, j = 0, list(map(int, np.multiply( fileAm, np.multiply(0.1, range(1,11,1)) )))
 
     # test every img  
     for file in fileList:  
+        file = trainPath + file
+
+        # print progress     
+        i = i + 1
+        if i in j:
+            print( '\t{:.0%}'.format((j.index(i)+1)/10 ))
+
         # get predict
         predict = seg(file, model) 
         
@@ -177,6 +190,10 @@ def test(fileList, model):
     
 if __name__ == '__main__':
     model = readModel()      
+
+    imgFile = open(imgNameFile,'r').readlines()
+    fileList = [ value[:-1] for value in imgFile ]   # remove \n
+    
     accuracy = test(fileList, model) 
 
 
