@@ -66,10 +66,10 @@ def show4(img1, name1, img2, name2, img3, name3, img4, name4):
     plt.pause(9)
     plt.close()
 
-def segmentation(file, model): 
+def segmentation(file, model, trPath): 
+
     imgOri = cv2.imread(file, cv2.IMREAD_UNCHANGED)   # read img
-    print(file)
-    show1(imgOri) 
+
     # GaussianBlur
     img = cv2.GaussianBlur(imgOri,(5,5),0)            # de-noise  
 
@@ -78,7 +78,6 @@ def segmentation(file, model):
 
     # gradient   
     gradient = rank.gradient(img, disk(2))  
-
     # find markers 
     markers = np.zeros_like(img)
     markers[img < np.max(gradient)*gradThrLo] = 1

@@ -24,8 +24,9 @@ outputPath = curPath + '/output/'
 recordFile = outputPath + 'record.csv'
 finalModelFile = outputPath + 'model.csv'     
 predictFile    = outputPath + 'predict.csv'  
-trainPath = curPath + '/input/train/'
-#trainPath = '/home/hao/Data/course/ML/project/train_v2/'
+#trainPath = '/home/cloudlab/Data/ml/dataset/train_v2/'      # small
+#trainPath = '/home/hao/Data/course/ML/project/train_v2/'    # big 
+trainPath = '/home/cloudlab/Data/ml/ship/scr/input/train/'         # local   
 imgNameFile = curPath + '/input/imgList.csv'
 fileList = glob.glob(trainPath + "*.jpg")
 imgsOri = io.ImageCollection(fileList)
@@ -128,20 +129,21 @@ def finalModel():
     entry = pd.DataFrame(np.array([[imgName,model[0],model[1]]],
                                   columns=['Final', gradThrHi, gradThrLo] ))   
     entry.to_csv(finelModelFile, mode='a', header=False) 
-    print(entry[0] ) 
+    #print(entry[0] ) 
 
 def readModel():
     df = pd.read_csv(finalModelFile) 
     model = ( df['gradThrHi'][0] , df['gradThrLo'][0]  ) 
     print('Current model is: \t ', model) 
+    return model
 
 def evalue(x, y):
     # IoU metric  
     I = np.multiply(x, y) 
-    U = x + y 
+    U = np.add(x, y)    
     if np.max(U) == 0:
         return 1  
-    IoU = len(np.nonzero(I))/len(np.nonzero(U))    
+    IoU = np.count_nonzero(I) / np.count_nonzero(U)      
     return 1 if IoU > iouThrh else 0     
         
 def calAccu():
@@ -153,33 +155,32 @@ def calAccu():
     return acc  
 
 def test(fileList, model):  
-    
     # prepare 
     prep() 
     
     fileAm = len(fileList) 
-    print('Start testing ......')   
+    print('Start testing ......\n')   
     print('Total : %d' % fileAm ) 
     i, j = 0, list(map(int, np.multiply( fileAm, np.multiply(0.1, range(1,11,1)) )))
 
     # test every img  
     for file in fileList:  
-        file = trainPath + file
+        #file = trainPath + file
 
         # print progress     
         i = i + 1
         if i in j:
             print( '\t{:.0%}'.format((j.index(i)+1)/10 ))
-
+        
         # get predict
-        predict = seg(file, model) 
+        predict = seg(file, model, trainPath) 
         
         # get ground truth  
         trueMask = rle_mask(file)  
-        
+ 
         # evaluate predict  
         evaluate = evalue( predict, trueMask ) 
-        show2(trueMask, 'true', predict, str(evaluate))    
+        #show2(trueMask, 'true', predict, str(evaluate))    
 
         # store img,evaluate   
         storePredict(file.replace(trainPath,''), evaluate)        
@@ -190,11 +191,12 @@ def test(fileList, model):
     return accuracy    
     
 if __name__ == '__main__':
+
     model = readModel()      
 
-    imgFile = open(imgNameFile,'r').readlines()
-    fileList = [ value[:-1] for value in imgFile ]   # remove \n
-    
+    #imgFile = open(imgNameFile,'r').readlines()
+    #fileList = [ value[:-1] for value in imgFile ]   # remove \n
+
     accuracy = test(fileList, model) 
 
 
