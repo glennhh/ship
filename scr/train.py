@@ -23,8 +23,8 @@ curPath = os.path.dirname(os.path.realpath(__file__))
 outputPath = curPath + '/output/' 
 recordFile = outputPath + 'record.csv'
 finalModelFile = outputPath + 'model.csv'     
-#trainPath = '/home/cloudlab/Data/ml/dataset/train_v2/' 
-trainPath = '/home/hao/Data/course/ML/project/train_v2/'
+trainPath = '/home/cloudlab/Data/ml/dataset/train_v2/' 
+#trainPath = '/home/hao/Data/course/ML/project/train_v2/'
 fileList = glob.glob(trainPath + "*.jpg")
 imgsOri = io.ImageCollection(fileList)
 trueMasks = pd.read_csv(curPath + '/input/train_ship_segmentations_v2.csv')  
@@ -37,7 +37,7 @@ shape=(768, 768)
 #############################
 hypA   =   1.5  
 patchHoleSize = 20
-
+kfold = 5
 
 def show1(img):
     plt.imshow(img)
@@ -84,12 +84,6 @@ def prep():
     with open(recordFile, 'w'): 
         entry = pd.DataFrame([], columns= ['imgName', 'gradThrHi', 'gradThrLo'] )  
         entry.to_csv(recordFile) 
-    try: 
-        os.remove(finalModelFile) 
-    except FileNotFoundError:
-        pass  
-    with open(finalModelFile, 'w'):
-        pass
 
 def rle_mask(imgPath):
     def demask(mask): 
@@ -135,6 +129,12 @@ def finalModel():
     gradThrHi = df[df.gradThrHi > 0].median().gradThrHi    # exclude 0 (no ship)  
     gradThrLo = df[df.gradThrLo > 0].median().gradThrLo 
     entry = pd.DataFrame( {'gradThrHi': [gradThrHi], 'gradThrLo': [gradThrLo] }, columns = ['gradThrHi', 'gradThrLo'] )    # save to csv   
+    try: 
+        os.remove(finalModelFile) 
+    except FileNotFoundError:
+        pass  
+    with open(finalModelFile, 'w'):
+        pass
     entry.to_csv(finalModelFile, mode='a', header=True) 
     print('\nModel: \n\n', entry, '\n')
  
@@ -239,7 +239,6 @@ if __name__ == '__main__':
 
     imgFiles = open(imgNameFile).readlines()
     imgAm = len(imgFiles) 
-    kfold = 4
     kfoldIdx = int(imgAm*((kfold-1)/kfold)) 
     #with open(imgNameFile,'r') as imgfile:  
     #    name = [next(imgfile) for x in range(kfoldIdx) ]  

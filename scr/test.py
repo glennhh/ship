@@ -24,9 +24,9 @@ outputPath = curPath + '/output/'
 recordFile = outputPath + 'record.csv'
 finalModelFile = outputPath + 'model.csv'     
 predictFile    = outputPath + 'predict.csv'  
-#trainPath = curPath + '/input/train/'
+trainPath = curPath + '/input/train/'
+#trainPath = '/home/hao/Data/course/ML/project/train_v2/'
 imgNameFile = curPath + '/input/imgList.csv'
-trainPath = '/home/hao/Data/course/ML/project/train_v2/'
 fileList = glob.glob(trainPath + "*.jpg")
 imgsOri = io.ImageCollection(fileList)
 trueMasks = pd.read_csv(curPath + '/input/train_ship_segmentations_v2.csv')  
@@ -176,9 +176,10 @@ def test(fileList, model):
         
         # get ground truth  
         trueMask = rle_mask(file)  
-
+        
         # evaluate predict  
         evaluate = evalue( predict, trueMask ) 
+        show2(trueMask, 'true', predict, str(evaluate))    
 
         # store img,evaluate   
         storePredict(file.replace(trainPath,''), evaluate)        
